@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>todolist</title>
+</head>
+<style>
+	*{
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.enterbox{
+		width: 800px;
+		height: 50px;
+		margin: 0 auto;
+	}
+	.enterbox>input{
+		width: 100%;
+		height:40px;
+		margin:2px auto;
+		border:1px solid #ccc;
+	}
+	.box{
+		width: 800px;
+		height: auto;
+		margin: 50px auto;
+		/* background-color: green; */
+	}
+	.boxTitle{
+		height:30px;
+		line-height: 30px;
+		font-size: 18px;
+		color: #333;
+		margin-bottom: 20px;
+	}
+	.boxTitle>input{
+		float: right;
+		margin:0 8px;
+	}
+	.box input{
+		display: block;
+		float: left;
+		/*padding: 5px;*/
+	}
+	.text{
+		 box-sizing: border-box;
+		float: left;
+		width:700px;
+		height:30px;
+		margin-left: 10px;
+	}
+	.all li{
+		height: 30px;
+		border:1px solid #ccc;
+	}
+    .re{
+        width:20px;
+        height:20px;
+        border-radius: 50%;
+        background: #ccc;
+        float: left;
+    }
+	.red{
+		background: red;
+	}
+</style>
+<body>
+<div class="app">
+	<div class="enterbox">
+		<input type="text" v-model="val" @keydown.13="add()">
+		<span v-text="message"></span>
+	</div>
+	<div class="box">
+		<div class="boxTitle">
+            <input type="submit" value="未完成" @click="ischangefn(false)" :style="{color:(ischange==false?'red':'')}">
+            <input type="submit" value="已完成" @click="ischangefn(true)" :style="{color:(ischange==true?'red':'')}">
+            <input type="submit" value="全部" @click="ischangefn('all')" :style="{color:(ischange=='all'?'red':'')}">
+		</div>
+		<ul class="all">
+			<li v-for="item in result">
+				<div @dblclick="edit(item)"  v-if="item.state" >
+                                                        <!--v-bind 相当于  ：-->
+					<div class="re" @click="isdone(item)" :class="{red:item.isdone}"></div>
+					<span class="text" v-text="item.val"></span>
+					<input type="submit" value="删除" @click="del(item.id)">
+				</div>
+				<div v-else>
+					<input type="text" v-model="item.val" v-focus @blur="edit(item)" >
+				</div>	
+			</li>
+		</ul>
+		<div v-show="datas.length==0">没有内容！</div>
+	</div>
+</div>
+</body>
+<script src="vue.min.v2.5.17.js"></script>
+<script>
+	new Vue({
+		el:".app",
+		data:{
+		    val:"",
+			message:"",
+			datas:localStorage.todo?JSON.parse(localStorage.todo):[] ,
+//            datas:[],
+            ischange:"all",
+		},
+		methods:{
+		    // 添加
+		    add(){
+				if (this.val){
+					var obj= {};
+					obj.val=this.val;
+					obj.id=Math.random() + new Date().getTime();
+					obj.state=true;
+					obj.isdone=false;
+//					obj.ischange="all";
+					this.datas.push(obj);
+                    this.val="";
+				}else{
+					this.message="请输入内容"
+				}
+				localStorage.todo=JSON.stringify(this.datas);
+			},
+			// 删除
+			del(obj){
+				for(let i=0;i<this.datas.length;i++){
+					if(obj==this.datas[i].id){
+
+						this.datas.splice(i,1);
+					}
+				}
+				/*this.datas=this.datas.filter(function () {
+                })*/
+				localStorage.todo=JSON.stringify(this.datas);
+			},
+			// 编辑
+			edit(obj){
+				obj.state=!obj.state;
+				localStorage.todo=JSON.stringify(this.datas);
+			},
+            //选中
+            isdone(obj){
+			    obj.isdone=!obj.isdone;
+			    localStorage.todo=JSON.stringify(this.datas);
+            },
+            ischangefn(obj){
+                this.ischange=obj;
+            },
+		},
+		watch:{
+		    val(one){
+		        if (this.val) {
+                    this.message = "";
+                }
+			},
+		},
+        //动态加载数据
+        computed:{
+		    result(){
+                return this.datas.filter((item)=>{
+                    if (this.ischange=='all') {
+                        return this.datas;
+                    }else {
+                        if (this.ischange==item.isdone) {
+                            return item;
+                        }
+                    }
+                })
+            }
+        }
+
+
+
+	})
+
+
+
+
+</script>
+</html>
